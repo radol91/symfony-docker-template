@@ -1,0 +1,47 @@
+version: '3'
+
+services:
+    nginx-proxy:
+        container_name: symfony-nginx-proxy
+        image: jwilder/nginx-proxy
+        ports:
+            - 80:80
+        volumes:
+            - /var/run/docker.sock:/tmp/docker.sock:ro
+
+    nginix:
+        container_name: symfony-nginx
+        build: build/nginx
+        ports:
+            - 80:80
+        working_dir: /app
+        volumes:
+            - ./:/app
+        networks:
+            - default
+        environment:
+            - VIRTUAL_HOST=symfony-template.local
+
+    php:
+        container_name: symfony-php
+        build: build/php
+        working_dir: /app
+        volumes:
+            - ./:/app
+        networks:
+            - default
+        env_file:
+            - .env
+
+    mysql:
+        build: build/mysql
+        container_name: symfony-mysql
+        networks:
+            - default
+        environment:
+            - MYSQL_ROOT_PASSWORD=secret
+            - MYSQL_DATABASE=app
+
+networks:
+    default:
+        driver: bridge
